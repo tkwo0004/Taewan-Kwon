@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인구수에 따른 상위 7개 도시 바 차트</title>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+    <div id="vis"></div>
+    <script type="text/javascript">
+        var data = {
+            "url": "au 2.csv"
+        };
+
+        var spec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "description": "인구수에 따른 각 주의 상위 7개 도시를 보여주는 바 차트",
+            "data": data,
+            "transform": [
+                { "filter": "datum.population != null" },
+                {
+                    "filter": {
+                        "selection": "state_filter"
+                    }
+                },
+                {
+                    "window": [{ "op": "rank", "as": "rank" }],
+                    "groupby": ["admin_name"]
+                },
+                { "filter": "datum.rank <= 7" }
+            ],
+            "mark": "bar",
+            "encoding": {
+                "x": {
+                    "field": "city",
+                    "type": "nominal",
+                    "sort": "-y",
+                    "axis": {
+                        "labelAngle": -45,
+                        "title": "city"
+                    }
+                },
+                "y": {
+                    "field": "population",
+                    "type": "quantitative",
+                    "title": "population"
+                },
+                "color": {
+                    "field": "admin_name",
+                    "type": "nominal",
+                    "title": "주"
+                },
+                "tooltip": [
+                    { "field": "city", "type": "nominal", "title": "도시" },
+                    { "field": "population", "type": "quantitative", "title": "인구수" },
+                    { "field": "admin_name", "type": "nominal", "title": "주" }
+                ]
+            },
+            "width": 600,
+            "height": 400,
+            "selection": {
+                "state_filter": {
+                    "type": "multi",
+                    "fields": ["admin_name"],
+                    "bind": {
+                        "input": "select",
+                        "options": [
+                            "Australian Capital Territory",
+                            "New South Wales",
+                            "Northern Territory",
+                            "Queensland",
+                            "South Australia",
+                            "Tasmania",
+                            "Victoria",
+                            "Western Australia"
+                        ],
+                        "name": "주 선택"
+                    }
+                }
+            }
+        };
+
+        vegaEmbed('#vis', spec).then(function(result) {
+            // 결과 처리
+        }).catch(console.error);
+    </script>
+</body>
+</html>
+
+------------------------------------------------------------------------------------------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Top 7 Cities by Population and State Population Pie Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+    <div id="vis"></div>
+    <div id="piechart"></div>
+    <script type="text/javascript">
+        var data = {
+            "url": "au 2.csv"
+        };
+
+        var spec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "description": "Bar chart showing the top 7 cities by population for each state",
+            "data": data,
+            "transform": [
+                { "filter": "datum.population != null" },
+                {
+                    "filter": {
+                        "selection": "state_filter"
+                    }
+                },
+                {
+                    "window": [{ "op": "rank", "as": "rank" }],
+                    "groupby": ["admin_name"]
+                },
+                { "filter": "datum.rank <= 7" }
+            ],
+            "mark": "bar",
+            "encoding": {
+                "x": {
+                    "field": "city",
+                    "type": "nominal",
+                    "sort": "-y",
+                    "axis": {
+                        "labelAngle": -45,
+                        "title": "City"
+                    }
+                },
+                "y": {
+                    "field": "population",
+                    "type": "quantitative",
+                    "title": "Population"
+                },
+                "color": {
+                    "field": "admin_name",
+                    "type": "nominal",
+                    "title": "State"
+                },
+                "tooltip": [
+                    { "field": "city", "type": "nominal", "title": "City" },
+                    { "field": "population", "type": "quantitative", "title": "Population" },
+                    { "field": "admin_name", "type": "nominal", "title": "State" }
+                ]
+            },
+            "width": 600,
+            "height": 400,
+            "selection": {
+                "state_filter": {
+                    "type": "multi",
+                    "fields": ["admin_name"],
+                    "bind": {
+                        "input": "select",
+                        "options": [
+                            "Australian Capital Territory",
+                            "New South Wales",
+                            "Northern Territory",
+                            "Queensland",
+                            "South Australia",
+                            "Tasmania",
+                            "Victoria",
+                            "Western Australia"
+                        ],
+                        "name": "Select State"
+                    }
+                }
+            }
+        };
+
+        var pieSpec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "description": "Pie chart comparing the total population of each state",
+            "data": data,
+            "transform": [
+                {
+                    "aggregate": [{ "op": "sum", "field": "population", "as": "total_population" }],
+                    "groupby": ["admin_name"]
+                }
+            ],
+            "mark": {
+                "type": "arc",
+                "outerRadius": 150
+            },
+            "encoding": {
+                "theta": {
+                    "field": "total_population",
+                    "type": "quantitative",
+                    "title": "Total Population"
+                },
+                "color": {
+                    "field": "admin_name",
+                    "type": "nominal",
+                    "title": "State"
+                },
+                "tooltip": [
+                    { "field": "admin_name", "type": "nominal", "title": "State" },
+                    { "field": "total_population", "type": "quantitative", "title": "Total Population" }
+                ]
+            },
+            "width": 400,
+            "height": 400
+        };
+
+        vegaEmbed('#vis', spec).then(function(result) {
+            // Handle result
+        }).catch(console.error);
+
+        vegaEmbed('#piechart', pieSpec).then(function(result) {
+            // Handle result
+        }).catch(console.error);
+    </script>
+</body>
+</html>
